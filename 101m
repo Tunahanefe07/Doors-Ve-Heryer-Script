@@ -1,0 +1,47 @@
+<?php
+$baglanti = new mysqli('localhost', 'root', '', '101m');
+
+
+if ($baglanti->connect_error) {
+    die(json_encode(array('status' => 'error', 'message' => 'Bağlantı hatası: ' . $baglanti->connect_error)));
+}
+
+
+if (isset($_GET['ad']) && isset($_GET['soyad']) && isset($_GET['il']) && isset($_GET['ilce'])) {
+    $ad = $baglanti->real_escape_string($_GET['ad']);
+    $soyad = $baglanti->real_escape_string($_GET['soyad']);
+    $il = $baglanti->real_escape_string($_GET['il']);
+    $ilce = $baglanti->real_escape_string($_GET['ilce']);
+
+
+    $sorgu = "SELECT * FROM 101m WHERE ADI = '$ad' AND SOYADI = '$soyad' AND NUFUSIL = '$il' AND NUFUSILCE = '$ilce'";
+    $sonuc = $baglanti->query($sorgu);
+
+    $veriler = array();
+    if ($sonuc->num_rows > 0) {
+        while ($row = $sonuc->fetch_assoc()) {
+            $veriler[] = array(
+                'ADI' => $row['ADI'],
+                'SOYADI' => $row['SOYADI'],
+                'DOGUMTARIHI' => $row['DOGUMTARIHI'],
+                'ANNEADI' => $row['ANNEADI'],
+                'ANNETC' => $row['ANNETC'],
+                'BABAADI' => $row['BABAADI'],
+                'BABATC' => $row['BABATC'],
+                'NUFUSIL' => $row['NUFUSIL'],
+                'NUFUSILCE' => $row['NUFUSILCE'],
+                
+            );
+        }
+        echo json_encode(array('status' => 'success', 'data' => $veriler));
+    } else {
+        echo json_encode(array('status' => 'error', 'message' => 'Belirtilen ad, soyad, il ve ilçe ile eşleşen kayıt bulunamadı.'));
+    }
+} else {
+
+    echo json_encode(array('status' => 'error', 'message' => 'Ad, soyad, il veya ilçe parametresi eksik.'));
+}
+
+
+$baglanti->close();
+?>
