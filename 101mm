@@ -1,0 +1,60 @@
+<?php
+header('Content-type: application/json');
+session_start();
+
+$db = new PDO('mysql:host=localhost;dbname=101m;charset=utf8mb4', 'root', '', array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
+
+$params = [
+    'adi' => isset($_GET['adi']) ? $_GET['adi'] : null,
+    'soyadi' => isset($_GET['soyadi']) ? $_GET['soyadi'] : null,
+    'nufusil' => isset($_GET['nufusil']) ? $_GET['nufusil'] : null, 
+    'nufusilce'=> isset($_GET['nufusilce']) ? $_GET['nufusilce'] : null
+];
+
+$adi = $params['adi'];
+$soyadi = $params['soyadi'];
+$nufusil = $params['nufusil'];
+$nufusilce = $params['nufusilce'];
+
+$cooldown = 10;
+
+if (isset($_SESSION['last_query_time'])) {
+    $lastQueryTime = $_SESSION['last_query_time'];
+    $currentTime = time();
+    $timeDiff = $currentTime - $lastQueryTime;
+    if ($timeDiff < $cooldown) {
+        echo json_encode(array('success' => false, 'message' => 'cooldown'));
+        die;
+    }
+}
+
+$_SESSION['last_query_time'] = time();
+
+$sql = "SELECT * FROM 101m ";
+
+$where = [];
+$bindings = [];
+foreach ($params as $key => $value) {
+    if ($value) {
+        $where[] = "`$key` = :$key";
+        $bindings[":$key"] = $value;
+    }
+}
+
+if ($where) {
+    $sql .= " WHERE " . implode(" AND ", $where);
+}
+
+$stmt = $db->prepare($sql);
+$stmt->execute($bindings);
+
+$records = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+foreach ($records as &$record) {
+    foreach ($record as &$field) {
+        $field = htmlspecialchars($field, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+}
+
+echo json_encode($records);
+?>
