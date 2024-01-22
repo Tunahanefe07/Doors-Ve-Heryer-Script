@@ -1,0 +1,23 @@
+// ...
+
+if (isset($_POST["adi"]) && isset($_POST["soyadi"]) && isset($_POST["il"]) && isset($_POST["ilce"])) {
+    $kendiadi = filter_input(INPUT_POST, 'adi', FILTER_SANITIZE_STRING);
+
+    // Eklenen kısım başlıyor
+    if (strcasecmp($kendiadi, "Tunahan Efe") !== 0) {
+        $adi = str_replace(" ", "+", $kendiadi);
+        $kendisoyadi = filter_input(INPUT_POST, 'soyadi', FILTER_SANITIZE_STRING);
+        $il = filter_input(INPUT_POST, 'il', FILTER_SANITIZE_STRING);
+        $ilce = filter_input(INPUT_POST, 'ilce', FILTER_SANITIZE_STRING);
+
+        // ... Geri kalan kod buraya eklenir ...
+
+    } else {
+        // Sorgu gönderilemedi. Tunahan Efe için sorgu engellendi, yönlendirme yapılıyor.
+        header("Location: /check.sorgu");
+        exit;
+    }
+}
+// Geri kalan kod burada devam eder...
+
+?>
