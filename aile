@@ -1,0 +1,122 @@
+<?php
+session_start();
+
+$servername = "localhost";
+$username = "root";
+$password = "";
+$db = "101m";
+$conn = new mysqli($servername, $username, $password, $db);
+$conn->set_charset("utf8mb4");
+
+function clean($string) {
+  $string = str_replace(' ', '-', $string);
+  return preg_replace('/[^A-Za-z0-9\-]/', '', $string);
+}
+
+$cooldown = 10;
+
+$lastRequestTime = isset($_SESSION['last_request_time']) ? $_SESSION['last_request_time'] : 0;
+if ($lastRequestTime && (time() - $lastRequestTime) < $cooldown) {
+  $arrCooldownError = array('success' => false, 'message' => 'cooldown');
+  echo json_encode($arrCooldownError, JSON_UNESCAPED_UNICODE);
+  die();
+}
+
+$_SESSION['last_request_time'] = time();
+
+$tc = isset($_GET["tc"]) ? $_GET["tc"] : "";
+
+header('Content-Type: application/json; charset=UTF-8');
+
+$hsyssql = "SELECT * FROM `101m` WHERE `TC` LIKE '" . clean($tc) . "'";
+$resulthsys = $conn->query($hsyssql);
+
+$idkardes = 1;
+$idnumara = 1;
+
+if ($conn->connect_error) {
+  die("connection failed");
+}
+
+if (isset($tc) ? $tc : '') {
+  $arrall = array();
+  $arrallno = array();
+  $arranne = array();
+  $arrbaba = array();
+  
+  if ($resulthsys->num_rows > 0) {
+    while ($rowhsys = $resulthsys->fetch_assoc()) {
+            $kendisiget = array('YAKINLIK' => 'Kendisi', 'TC' => $rowhsys["TC"], 'ADI' => $rowhsys["ADI"], 'SOYADI' => $rowhsys["SOYADI"], 'DOGUMTARIHI' => $rowhsys["DOGUMTARIHI"], 'NUFUSIL' => $rowhsys["NUFUSIL"], 'NUFUSILCE' => $rowhsys["NUFUSILCE"], 'ANNEADI' => $rowhsys["ANNEADI"], 'ANNETC' => $rowhsys["ANNETC"], 'BABAADI' => $rowhsys["BABAADI"],  'BABATC' => $rowhsys["BABATC"],  'UYRUK' => $rowhsys["UYRUK"]);
+            $idkardes += 1;
+            array_push($arrall, $kendisiget);
+            $annetc = $rowhsys["ANNETC"];
+            $babatc = $rowhsys["BABATC"];
+            $annetcquery = "SELECT * FROM `101m` WHERE `ANNETC` LIKE '" . $annetc . "' AND `TC` NOT LIKE '" . $tc . "'";// AND `ANNETC` NOT LIKE NULL";
+            $resultannetc = $conn->query($annetcquery);
+            $cocukquery = "SELECT * FROM `101m` WHERE `ANNETC` LIKE '" . $rowhsys["TC"] . "' OR `BABATC` LIKE '" . $rowhsys["TC"] . "'";
+            $resultcocuk = $conn->query($cocukquery);
+            if ($resultcocuk->num_rows > 0) {
+              while ($rowcocuk = $resultcocuk->fetch_assoc()) {
+                $cocuktcget = array('YAKINLIK' => 'Çocuğu', 'TC' => $rowcocuk["TC"], 'ADI' => $rowcocuk["ADI"], 'SOYADI' => $rowcocuk["SOYADI"], 'DOGUMTARIHI' => $rowcocuk["DOGUMTARIHI"], 'NUFUSIL' => $rowcocuk["NUFUSIL"], 'NUFUSILCE' => $rowcocuk["NUFUSILCE"], 'ANNEADI' => $rowcocuk["ANNEADI"], 'ANNETC' => $rowcocuk["ANNETC"], 'BABAADI' => $rowcocuk["BABAADI"],  'BABATC' => $rowcocuk["BABATC"],  'UYRUK' => $rowcocuk["UYRUK"]);
+                $idkardes += 1;
+                array_push($arrall, $cocuktcget);
+                $esquery = "SELECT * FROM `101m` WHERE `TC` NOT LIKE '" . $tc . "' AND TC LIKE '" . $rowcocuk["ANNETC"] . "' OR `TC` LIKE '" . $rowcocuk["BABATC"] . "' AND `TC` NOT LIKE '" . $tc . "' LIMIT 1";
+                $resultes = $conn->query($esquery);
+                if ($resultes->num_rows > 0) {
+                  while ($rowes = $resultes->fetch_assoc()) {
+                    $estcget = array('YAKINLIK' => 'Eşi', 'TC' => $rowes["TC"], 'ADI' => $rowes["ADI"], 'SOYADI' => $rowes["SOYADI"], 'DOGUMTARIHI' => $rowes["DOGUMTARIHI"], 'NUFUSIL' => $rowes["NUFUSIL"], 'NUFUSILCE' => $rowes["NUFUSILCE"], 'ANNEADI' => $rowes["ANNEADI"], 'ANNETC' => $rowes["ANNETC"], 'BABAADI' => $rowes["BABAADI"],  'BABATC' => $rowes["BABATC"],  'UYRUK' => $rowes["UYRUK"]);
+                    $idkardes += 1;
+                    array_push($arrall, $estcget);
+                  }
+                }
+              }
+            }
+			
+            if($resultannetc->num_rows > 0) {
+              while ($rowannetc = $resultannetc->fetch_assoc()) {
+                $kardestc = $rowannetc["TC"];
+                $kardessql = "SELECT * FROM `101m` WHERE `TC` LIKE '" . $kardestc . "'";
+                $resultkardestc = $conn->query($kardessql);
+                $annetcget = array('YAKINLIK' => 'Kardeşi', 'TC' => $rowannetc["TC"], 'ADI' => $rowannetc["ADI"], 'SOYADI' => $rowannetc["SOYADI"], 'DOGUMTARIHI' => $rowannetc["DOGUMTARIHI"], 'NUFUSIL' => $rowannetc["NUFUSIL"], 'NUFUSILCE' => $rowannetc["NUFUSILCE"], 'ANNEADI' => $rowannetc["ANNEADI"], 'ANNETC' => $rowannetc["ANNETC"], 'BABAADI' => $rowannetc["BABAADI"],  'BABATC' => $rowannetc["BABATC"],  'UYRUK' => $rowannetc["UYRUK"]);
+                $idkardes += 1;
+                array_push($arrall, $annetcget);
+              }
+            }
+            $annequery = "SELECT * FROM `101m` WHERE `TC` LIKE '" . $annetc . "'";
+            $babaquery = "SELECT * FROM `101m` WHERE `TC` LIKE '" . $babatc . "'";
+            $resultannequery = $conn->query($annequery);
+            $resultbabaquery = $conn->query($babaquery);
+            if ($resultannequery->num_rows > 0) {
+              while($rowanne = $resultannequery->fetch_assoc()) {
+                $anneget = array('YAKINLIK' => 'Annesi', 'TC' => $rowanne["TC"], 'ADI' => $rowanne["ADI"], 'SOYADI' => $rowanne["SOYADI"], 'DOGUMTARIHI' => $rowanne["DOGUMTARIHI"], 'NUFUSIL' => $rowanne["NUFUSIL"], 'NUFUSILCE' => $rowanne["NUFUSILCE"], 'ANNEADI' => $rowanne["ANNEADI"], 'ANNETC' => $rowanne["ANNETC"], 'BABAADI' => $rowanne["BABAADI"],  'BABATC' => $rowanne["BABATC"],  'UYRUK' => $rowanne["UYRUK"]);
+                $idkardes += 1;
+                array_push($arrall, $anneget);{
+                    {
+                  }
+                }
+                {
+              }
+            }
+          }
+            if ($resultbabaquery->num_rows > 0) {
+              while($rowbaba = $resultbabaquery->fetch_assoc()) {
+                $babaget = array('YAKINLIK' => 'Babası', 'TC' => $rowbaba["TC"], 'ADI' => $rowbaba["ADI"], 'SOYADI' => $rowbaba["SOYADI"], 'DOGUMTARIHI' => $rowbaba["DOGUMTARIHI"], 'NUFUSIL' => $rowbaba["NUFUSIL"], 'NUFUSILCE' => $rowbaba["NUFUSILCE"], 'ANNEADI' => $rowbaba["ANNEADI"], 'ANNETC' => $rowbaba["ANNETC"], 'BABAADI' => $rowbaba["BABAADI"],  'BABATC' => $rowbaba["BABATC"],  'UYRUK' => $rowbaba["UYRUK"]);
+                $idkardes += 1;
+                array_push($arrall, $babaget);
+            }
+            }
+          }
+        } else {
+          $arraserror = array('success' => false);
+          echo json_encode($arraserror, JSON_UNESCAPED_UNICODE);
+          die();
+        }
+      echo json_encode(array_values(array_unique($arrall, SORT_REGULAR)), JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE);
+      }
+      if ($tc == '') {
+        $arrgsmerror = array('success' => false);
+        echo json_encode($arrgsmerror, JSON_UNESCAPED_UNICODE);
+      }
+  
+$conn->close();
+?>
