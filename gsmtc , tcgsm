@@ -1,0 +1,71 @@
+<?php
+session_start();
+header('Content-type: application/json; charset=utf-8');
+$con = new mysqli("localhost", "root", "", "116m");
+
+if ($con->connect_errno > 0) {
+    die("sus aq" . $con->connect_error);
+}
+
+$cooldown = 10;
+
+if (isset($_SESSION['last_query_time']) && (time() - $_SESSION['last_query_time']) < $cooldown) {
+    echo json_encode(array('success' => false, 'message' => 'cooldown'));
+    exit;
+}
+
+$_SESSION['last_query_time'] = time();
+    
+    $stmt = $con->prepare("SELECT GSM, TC FROM 116m WHERE GSM=?");
+    $stmt->bind_param("s", $gsm);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $data = array();
+    while ($row = $result->fetch_assoc()) {
+        $data[] = $row;
+    }
+    
+    if (empty($data)) {
+        echo json_encode(array('success' => false));
+    } else {
+        echo json_encode($data);
+    }
+}
+?>
+
+
+
+<?php
+session_start();
+header('Content-type: application/json; charset=utf-8');
+$con = new mysqli("localhost", "root", "", "116m");
+
+if ($con->connect_errno > 0) {
+    die("sus aq" . $con->connect_error);
+}
+
+$cooldown = 10;
+
+if (isset($_SESSION['last_query_time']) && (time() - $_SESSION['last_query_time']) < $cooldown) {
+    echo json_encode(array('success' => false, 'message' => 'cooldown'));
+    exit;
+}
+
+$_SESSION['last_query_time'] = time();
+    
+    $stmt = $con->prepare("SELECT GSM, TC FROM 116m WHERE TC=?");
+    $stmt->bind_param("s", $gsm);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $data = array();
+    while ($row = $result->fetch_assoc()) {
+        $data[] = $row;
+    }
+    
+    if (empty($data)) {
+        echo json_encode(array('success' => false));
+    } else {
+        echo json_encode($data);
+    }
+}
+?>
