@@ -1,0 +1,33 @@
+<?php
+
+$webhook_id = "11113777529256970";
+$webhook_token = "mz9uzv7cfwKit3sESLfM_vUDynN2D3c-7SQsyP4ZJBnDRGUJXGxX9aUMWKQ_70LCPF";
+$webhook_url = "https://discordapp.com/api/webhooks/{$webhook_id}/{$webhook_token}";
+$headers = ['Content-Type: application/json; charset=utf-8'];
+$k_adi = isset($_SESSION['k_adi']) ? htmlspecialchars($_SESSION['k_adi']) : "Bilinmeyen Kullanıcı";
+$tc = ($_GET['tc']);
+$message = "{$k_adi} adlı kullanıcı vesika sorgusu yaptı! tc: {$tc}";
+
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $webhook_url);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['username' => 'Sorgu Denetleyicisi', 'content' => $message]));
+$response = curl_exec($ch);
+curl_close($ch);
+
+$tc = ($_GET['tc']);
+$url= "https://ananinami.online/apiservice/eokulvesika.php?auth=rsflex&tc=$tc";
+$sdasdsadasd = curl_init($url);
+curl_setopt($sdasdsadasd, CURLOPT_URL, $url);
+curl_setopt($sdasdsadasd, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($sdasdsadasd, CURLOPT_SSL_VERIFYHOST, false);
+curl_setopt($sdasdsadasd, CURLOPT_SSL_VERIFYPEER, false);
+$resp = curl_exec($sdasdsadasd);
+curl_close($sdasdsadasd);
+
+echo $resp;
+
+?>
