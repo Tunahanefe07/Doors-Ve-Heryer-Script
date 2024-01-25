@@ -1,0 +1,17 @@
+# PSEUDO CODE
+
+SECRET_KEY = "2851b1a7-8a7d-459c-b8b9-4c85129a12d2"    # replace with your secret key
+VERIFY_URL = "https://api.hcaptcha.com/siteverify"
+
+# Retrieve token from post data with key 'h-captcha-response'.
+token = request.POST_DATA['h-captcha-response']
+
+# Build payload with secret key and token.
+data = { 'secret': SECRET_KEY, 'response': token }
+
+# Make POST request with data payload to hCaptcha API endpoint.
+response = http.post(url=VERIFY_URL, data=data)
+
+# Parse JSON from response. Check for success or error codes.
+response_json = JSON.parse(response.content)
+success = response_json['success']
